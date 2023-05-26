@@ -33,8 +33,12 @@
 //      IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). October 2018.
 //   Dong-Uk Seo, Hyungtae Lim and Seungjae Lee, PaGO-LOAM Robust Ground-Optimized LiDAR Odometry
 
+<<<<<<< HEAD
 //总体流程：订阅点云数据回调处理->点云转换到pcl预处理->截取一帧激光数据->投影映射到图像->地面移除->点云分割->发布点云数据->重置参数;
 //订阅到激光雷达数据的回调处理函数：
+=======
+
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
 #include "utility.h"
 
 class ImageProjection{
@@ -196,6 +200,7 @@ public:
     }
 
     
+<<<<<<< HEAD
 //    void cloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg){订阅到激光雷达数据的回调处理函数：
     void cloudHandler(const cloud_msgs::ground_estimate::ConstPtr& laserCloudMsg){
 
@@ -205,16 +210,36 @@ public:
         findStartEndAngle();//1.一圈数据的角度差，使用atan2计算;2.注意计算结果的范围合理性
         // 3. Range image projection
         projectPointCloud();//将激光雷达数据投影成一个16x1800（依雷达角分辨率而定）的点云阵列
+=======
+//    void cloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudMsg){
+    void cloudHandler(const cloud_msgs::ground_estimate::ConstPtr& laserCloudMsg){
+
+        // 1. Convert ros message to pcl point cloud
+        copyPointCloud(laserCloudMsg);
+        // 2. Start and end angle of a scan
+        findStartEndAngle();
+        // 3. Range image projection
+        projectPointCloud();
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
         // 4. Mark ground points
         if (alterGround)
             groundRemoval_patchwork();
         else
+<<<<<<< HEAD
             groundRemoval();//根据上下两线之间点的位置计算两线之间俯仰角判断，小于10度则为地面点
 
         // 5. Point cloud segmentation
         cloudSegmentation();//首先对点云进行聚类标记，根据标签进行对应点云块存储;
         // 6. Publish all clouds
         publishCloud();//发布各类点云数据
+=======
+            groundRemoval();
+
+        // 5. Point cloud segmentation
+        cloudSegmentation();
+        // 6. Publish all clouds
+        publishCloud();
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
         // 7. Reset parameters for next iteration
         resetParameters();
     }
@@ -230,7 +255,11 @@ public:
             segMsg.endOrientation += 2 * M_PI;
         segMsg.orientationDiff = segMsg.endOrientation - segMsg.startOrientation;
     }
+<<<<<<< HEAD
     //将3D point cloud投影映射到2D range image
+=======
+
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
     void projectPointCloud(){
         // range image projection
         float verticalAngle, horizonAngle, range;
@@ -249,23 +278,36 @@ public:
                 rowIdn = laserCloudInRing->points[i].ring;
             }
             else{
+<<<<<<< HEAD
                 //反正切的角度等于X轴与通过原点和给定坐标点(x, y)的直线之间的夹角，结果为正表示从X轴逆时针旋转的角度，结果为负表示从X轴顺时针旋转的角度;
                 verticalAngle = atan2(thisPoint.z, sqrt(thisPoint.x * thisPoint.x + thisPoint.y * thisPoint.y)) * 180 / M_PI;
                 rowIdn = (verticalAngle + ang_bottom) / ang_res_y;//确定行索引
+=======
+                verticalAngle = atan2(thisPoint.z, sqrt(thisPoint.x * thisPoint.x + thisPoint.y * thisPoint.y)) * 180 / M_PI;
+                rowIdn = (verticalAngle + ang_bottom) / ang_res_y;
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
             }
             if (rowIdn < 0 || rowIdn >= N_SCAN)
                 continue;
 
             horizonAngle = atan2(thisPoint.x, thisPoint.y) * 180 / M_PI;
 
+<<<<<<< HEAD
             columnIdn = -round((horizonAngle-90.0)/ang_res_x) + Horizon_SCAN/2;//确定列索引
+=======
+            columnIdn = -round((horizonAngle-90.0)/ang_res_x) + Horizon_SCAN/2;
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
             if (columnIdn >= Horizon_SCAN)
                 columnIdn -= Horizon_SCAN;
 
             if (columnIdn < 0 || columnIdn >= Horizon_SCAN)
                 continue;
 
+<<<<<<< HEAD
             range = sqrt(thisPoint.x * thisPoint.x + thisPoint.y * thisPoint.y + thisPoint.z * thisPoint.z);//确定深度
+=======
+            range = sqrt(thisPoint.x * thisPoint.x + thisPoint.y * thisPoint.y + thisPoint.z * thisPoint.z);
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
             if (range < sensorMinimumRange)
                 continue;
             
@@ -357,7 +399,11 @@ public:
         //  1, ground
         for (size_t j = 0; j < Horizon_SCAN; ++j){
             for (size_t i = 0; i < groundScanInd; ++i){
+<<<<<<< HEAD
                  //groundScanInd定义打到地面上激光线的数目
+=======
+
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
                 lowerInd = j + ( i )*Horizon_SCAN;
                 upperInd = j + (i+1)*Horizon_SCAN;
 
@@ -373,14 +419,22 @@ public:
                 diffZ = fullCloud->points[upperInd].z - fullCloud->points[lowerInd].z;
 
                 angle = atan2(diffZ, sqrt(diffX*diffX + diffY*diffY) ) * 180 / M_PI;
+<<<<<<< HEAD
                 //垂直方向相邻两点俯仰角小于10度就判定为地面点;相邻扫描圈
+=======
+
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
                 if (abs(angle - sensorMountAngle) <= 10){
                     groundMat.at<int8_t>(i,j) = 1;
                     groundMat.at<int8_t>(i+1,j) = 1;
                 }
             }
         }
+<<<<<<< HEAD
         // extract ground cloud (groundMat == 1)  垂直相邻两点俯仰角小于10度就判定为地面点。
+=======
+        // extract ground cloud (groundMat == 1)
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
         // mark entry that doesn't need to label (ground and invalid point) for segmentation
         // note that ground remove is from 0~N_SCAN-1, need rangeMat for mark label matrix for the 16th scan
         for (size_t i = 0; i < N_SCAN; ++i){
@@ -405,7 +459,11 @@ public:
         for (size_t i = 0; i < N_SCAN; ++i)
             for (size_t j = 0; j < Horizon_SCAN; ++j)
                 if (labelMat.at<int>(i,j) == 0)
+<<<<<<< HEAD
                     labelComponents(i, j);//->labelComponents()聚类操作
+=======
+                    labelComponents(i, j);
+>>>>>>> afcba08fbff9c58ea6b1ffad7ef4a8f663f837fd
 
         int sizeOfSegCloud = 0;
         // extract segmented cloud for lidar odometry
